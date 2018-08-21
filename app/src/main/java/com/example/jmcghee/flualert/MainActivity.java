@@ -1,5 +1,8 @@
 package com.example.jmcghee.flualert;
 
+import android.app.LoaderManager;
+import android.content.AsyncTaskLoader;
+import android.content.Loader;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,12 +13,15 @@ import android.widget.TextView;
 import com.example.jmcghee.flualert.utils.NetworkUtils;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<String> {
 
     private static final String NUM_DAYS = Integer.toString(7);
+    private static final String SEARCH_QUERY_URL = "url";
     private static final String SEARCH_RESULTS_RAW_JSON = "results"; // Used to save and restore the results of the API call
+    private static final int MY_LOADER = 77;
 
     private TextView tvTest;
     private ProgressBar pbLoadingIndicator;
@@ -47,45 +53,61 @@ public class MainActivity extends AppCompatActivity {
     private void makeQuery() {
         // Build the URL
         URL url = NetworkUtils.buildUrl(NUM_DAYS);
-        // Execute the AsyncTask
-        new NetworkingTask().execute(url);
+
+        Bundle queryBundle = new Bundle();
+        queryBundle.putString(SEARCH_QUERY_URL, url.toString());
+
+       LoaderManager loaderManager = getLoaderManager();
+       Loader<String> queryLoader = loaderManager.getLoader(MY_LOADER);
+       if (queryLoader == null) {
+           loaderManager.initLoader(MY_LOADER, queryBundle, this);
+       } else {
+           loaderManager.restartLoader(MY_LOADER, queryBundle, this);
+       }
     }
+    
 
-    private class NetworkingTask extends AsyncTask<URL, Void, String> {
+    @Override
+    public Loader<String> onCreateLoader(int id, final Bundle args) {
+        return new AsyncTaskLoader<String>(this) {
 
-        /**
-         * Make the API call
-         *
-         * @param urls The URL to fetch the HTTP response from
-         * @return The result of the API call
-         */
-        @Override
-        protected String doInBackground(URL... urls) {
-            URL url = urls[0];
-            String results = null;
-            try {
-                results = NetworkUtils.getResponseFromHttpUrl(url);
-            } catch (IOException e) {
-                e.printStackTrace();
+            @Override
+            protected void onStartLoading() {
+                if (args == null) return;
+                pbLoadingIndicator.setVisibility(View.VISIBLE);
+                forceLoad();
             }
 
-            return results;
-        }
+            @Override
+            public String loadInBackground() {
+                String searchQueryUrlString = args.getString(SEARCH_QUERY_URL);
+                String result = null;
+                try {
+                    URL url = new URL(searchQueryUrlString);
+                    result = NetworkUtils.getResponseFromHttpUrl(url);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            pbLoadingIndicator.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            pbLoadingIndicator.setVisibility(View.INVISIBLE);
-
-            if (s != null && !s.equals("")) {
-               tvTest.setText(s);
+                return result;
             }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<String> loader, String data) {
+        pbLoadingIndicator.setVisibility(View.INVISIBLE);
+
+        if (data != null && !data.equals("")) {
+            tvTest.setText(data);
         }
     }
+
+    @Override
+    public void onLoaderReset(Loader<String> loader) {
+
+    }
+
+
 
 }
