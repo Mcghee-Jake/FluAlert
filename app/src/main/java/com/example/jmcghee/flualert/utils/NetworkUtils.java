@@ -20,7 +20,7 @@ import java.util.Scanner;
 public class NetworkUtils {
 
     final static String BASE_URL = "http://api.flutrack.org";
-    final static String PARAM_QUERY = "?time";
+    final static String PARAM_QUERY = "time";
 
     /**
      * Builds the URL

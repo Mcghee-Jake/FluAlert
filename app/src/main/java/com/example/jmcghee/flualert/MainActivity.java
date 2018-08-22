@@ -1,11 +1,9 @@
 package com.example.jmcghee.flualert;
 
-import android.app.LoaderManager;
-import android.content.AsyncTaskLoader;
-import android.content.Loader;
-import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -13,10 +11,9 @@ import android.widget.TextView;
 import com.example.jmcghee.flualert.utils.NetworkUtils;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<String> {
+public class MainActivity extends AppCompatActivity implements android.support.v4.app.LoaderManager.LoaderCallbacks<String> {
 
     private static final String NUM_DAYS = Integer.toString(7);
     private static final String SEARCH_QUERY_URL = "url";
@@ -51,25 +48,31 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void makeQuery() {
+        // Get the loader
+        android.support.v4.app.LoaderManager loaderManager = getSupportLoaderManager();
+        android.support.v4.content.Loader<String> queryLoader = loaderManager.getLoader(MY_LOADER);
+
         // Build the URL
         URL url = NetworkUtils.buildUrl(NUM_DAYS);
-
+        // Put the URL into a bundle
         Bundle queryBundle = new Bundle();
         queryBundle.putString(SEARCH_QUERY_URL, url.toString());
 
-       LoaderManager loaderManager = getLoaderManager();
-       Loader<String> queryLoader = loaderManager.getLoader(MY_LOADER);
-       if (queryLoader == null) {
-           loaderManager.initLoader(MY_LOADER, queryBundle, this);
-       } else {
-           loaderManager.restartLoader(MY_LOADER, queryBundle, this);
-       }
+        // Get the callbacks
+        android.support.v4.app.LoaderManager.LoaderCallbacks<String> callbacks = MainActivity.this;
+
+        // Init or restart the loader
+        if (queryLoader == null) {
+           loaderManager.initLoader(MY_LOADER, queryBundle, callbacks);
+        } else {
+           loaderManager.restartLoader(MY_LOADER, queryBundle, callbacks);
+        }
     }
     
 
     @Override
-    public Loader<String> onCreateLoader(int id, final Bundle args) {
-        return new AsyncTaskLoader<String>(this) {
+    public android.support.v4.content.Loader<String> onCreateLoader(int id, final Bundle args) {
+        return new android.support.v4.content.AsyncTaskLoader<String>(this) {
 
             @Override
             protected void onStartLoading() {
@@ -84,18 +87,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 String result = null;
                 try {
                     URL url = new URL(searchQueryUrlString);
+                    Log.d("URL", url.toString());
                     result = NetworkUtils.getResponseFromHttpUrl(url);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
                 return result;
             }
         };
     }
 
     @Override
-    public void onLoadFinished(Loader<String> loader, String data) {
+    public void onLoadFinished(@NonNull android.support.v4.content.Loader<String> loader, String data) {
         pbLoadingIndicator.setVisibility(View.INVISIBLE);
 
         if (data != null && !data.equals("")) {
@@ -104,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
-    public void onLoaderReset(Loader<String> loader) {
+    public void onLoaderReset(@NonNull android.support.v4.content.Loader<String> loader) {
 
     }
 
