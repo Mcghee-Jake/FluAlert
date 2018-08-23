@@ -12,4 +12,24 @@ public class FluTweet {
         this.longitude = longitude;
         this.tweet_date = tweet_date;
     }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getTweetText() {
+        return tweetText;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public long getTweet_date() {
+        return tweet_date;
+    }
 }
