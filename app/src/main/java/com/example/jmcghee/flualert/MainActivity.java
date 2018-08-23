@@ -218,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         if (data != null && !data.equals("")) {
             fluTweets = NetworkUtils.getFluTweetsFromRawJson(data);
             FluTweet fluTweet = fluTweets.get(0);
-            tvTest.setText(fluTweet.getUsername());
+            tvTest.setText(fluTweet.getTweetText());
         }
     }
 

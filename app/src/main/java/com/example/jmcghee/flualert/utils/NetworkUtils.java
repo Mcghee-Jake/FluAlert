@@ -1,5 +1,6 @@
 package com.example.jmcghee.flualert.utils;
 
+import android.location.Location;
 import android.net.Uri;
 
 import com.example.jmcghee.flualert.data.FluTweet;
@@ -79,11 +80,12 @@ public class NetworkUtils {
 
                 String username = jsonObject.getString("user_name");
                 String tweetText = jsonObject.getString("tweet_text");
-                Double latitude = jsonObject.getDouble("latitude");
-                Double longitude = jsonObject.getDouble("longitude");
+                Location location = new Location("");
+                location.setLatitude(jsonObject.getDouble("latitude"));
+                location.setLongitude(jsonObject.getDouble("longitude"));
                 Long tweetDate = jsonObject.getLong("tweet_date");
 
-                FluTweet fluTweet = new FluTweet(username, tweetText, latitude, longitude, tweetDate);
+                FluTweet fluTweet = new FluTweet(username, tweetText, location, tweetDate);
                 fluTweets.add(fluTweet);
             }
         } catch (JSONException e) {

@@ -1,15 +1,16 @@
 package com.example.jmcghee.flualert.data;
 
+import android.location.Location;
+
 public class FluTweet {
     private String username, tweetText;
-    private double latitude, longitude;
+    private Location location;
     private long tweet_date;
 
-    public FluTweet(String username, String tweetText, double latitude, double longitude, long tweet_date) {
+    public FluTweet(String username, String tweetText, Location location, long tweet_date) {
         this.username = username;
+        this.location = location;
         this.tweetText = tweetText;
-        this.latitude = latitude;
-        this.longitude = longitude;
         this.tweet_date = tweet_date;
     }
 
@@ -21,15 +22,16 @@ public class FluTweet {
         return tweetText;
     }
 
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
+    public Location getLocation() {
+        return location;
     }
 
     public long getTweet_date() {
         return tweet_date;
     }
+
+    public double getDistance(Location location) {
+        return this.location.distanceTo(location);
+    }
+
 }
