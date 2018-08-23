@@ -98,9 +98,7 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         buildLocationCallback();
 
         fusedLocationProviderClient = new FusedLocationProviderClient(this);
-        if (fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper()).isSuccessful()) {
-            Toast.makeText(this, "test 4", Toast.LENGTH_SHORT).show();
-        };
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
     }
 
     private void buildLocationRequest() {
