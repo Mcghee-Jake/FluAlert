@@ -10,7 +10,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,7 +17,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.jmcghee.flualert.data.FluTweet;
 import com.example.jmcghee.flualert.utils.NetworkUtils;
@@ -26,10 +24,12 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements android.support.v4.app.LoaderManager.LoaderCallbacks<String> {
 
@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements android.support.v
             makeQuery();
         }
 
+        // Make sure location permissions are enabled
         while (!runtime_permissions()) {
             runtime_permissions();
         }
@@ -97,28 +98,8 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         buildLocationRequest();
         buildLocationCallback();
 
-        fusedLocationProviderClient = new FusedLocationProviderClient(this);
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
-    }
-
-    private void buildLocationRequest() {
-        locationRequest = LocationRequest.create();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setFastestInterval(1000);
-        locationRequest.setInterval(5*1000);
-    }
-
-    private void buildLocationCallback() {
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                for (Location location : locationResult.getLocations()) {
-                    tvLatitude.setText(Double.toString(location.getLatitude()));
-                    tvLongitude.setText(Double.toString(location.getLongitude()));
-                }
-                Toast.makeText(MainActivity.this, "Test 3", Toast.LENGTH_SHORT).show();
-            }
-        };
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
     }
 
     @Override
@@ -127,16 +108,6 @@ public class MainActivity extends AppCompatActivity implements android.support.v
 
         String rawJsonSearchResults = tvTest.getText().toString();
         outState.putString(SEARCH_RESULTS_RAW_JSON, rawJsonSearchResults);
-    }
-
-    private boolean runtime_permissions() {
-        if (Build.VERSION.SDK_INT >= 23
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSIONS_REQUEST_CODE);
-
-            return false;
-        } else return true;
     }
 
     @Override
@@ -159,28 +130,6 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         }
     }
 
-    private void makeQuery() {
-        // Get the loader
-        android.support.v4.app.LoaderManager loaderManager = getSupportLoaderManager();
-        android.support.v4.content.Loader<String> queryLoader = loaderManager.getLoader(MY_LOADER);
-
-        // Build the URL
-        URL url = NetworkUtils.buildUrl(NUM_DAYS);
-        // Put the URL into a bundle
-        Bundle queryBundle = new Bundle();
-        queryBundle.putString(SEARCH_QUERY_URL, url.toString());
-
-        // Get the callbacks
-        android.support.v4.app.LoaderManager.LoaderCallbacks<String> callbacks = MainActivity.this;
-
-        // Init or restart the loader
-        if (queryLoader == null) {
-           loaderManager.initLoader(MY_LOADER, queryBundle, callbacks);
-        } else {
-           loaderManager.restartLoader(MY_LOADER, queryBundle, callbacks);
-        }
-    }
-    
 
     @Override
     public android.support.v4.content.Loader<String> onCreateLoader(int id, final Bundle args) {
@@ -225,6 +174,56 @@ public class MainActivity extends AppCompatActivity implements android.support.v
 
     }
 
+    private void buildLocationRequest() {
+        locationRequest = new LocationRequest();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setFastestInterval(1000);
+        locationRequest.setInterval(5*1000);
+    }
+
+    private void buildLocationCallback() {
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                for (Location location : locationResult.getLocations()) {
+                    tvLatitude.setText(String.format(Locale.ENGLISH, "%f", location.getLatitude()));
+                    tvLongitude.setText(String.format(Locale.ENGLISH, "%f", location.getLongitude()));
+                }
+            }
+        };
+    }
+
+    private void makeQuery() {
+        // Get the loader
+        android.support.v4.app.LoaderManager loaderManager = getSupportLoaderManager();
+        android.support.v4.content.Loader<String> queryLoader = loaderManager.getLoader(MY_LOADER);
+
+        // Build the URL
+        URL url = NetworkUtils.buildUrl(NUM_DAYS);
+        // Put the URL into a bundle
+        Bundle queryBundle = new Bundle();
+        queryBundle.putString(SEARCH_QUERY_URL, url.toString());
+
+        // Get the callbacks
+        android.support.v4.app.LoaderManager.LoaderCallbacks<String> callbacks = MainActivity.this;
+
+        // Init or restart the loader
+        if (queryLoader == null) {
+            loaderManager.initLoader(MY_LOADER, queryBundle, callbacks);
+        } else {
+            loaderManager.restartLoader(MY_LOADER, queryBundle, callbacks);
+        }
+    }
+
+    private boolean runtime_permissions() {
+        if (Build.VERSION.SDK_INT >= 23
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSIONS_REQUEST_CODE);
+
+            return false;
+        } else return true;
+    }
 
 
 }
