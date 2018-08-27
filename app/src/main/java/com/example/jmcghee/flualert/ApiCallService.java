@@ -3,7 +3,6 @@ package com.example.jmcghee.flualert;
 import android.app.Service;
 import android.content.Intent;
 import android.location.Location;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -25,6 +24,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ApiCallService extends Service {
 
@@ -43,11 +44,13 @@ public class ApiCallService extends Service {
 
         @Override
         public void onCreate() {
-            new Handler().postDelayed(new Runnable() {
-                public void run() {
-                    volleyRequest();
-                }
-            }, 10*000);
+           Timer timer = new Timer();
+           timer.scheduleAtFixedRate(new TimerTask() {
+               @Override
+               public void run() {
+                   volleyRequest();
+               }
+           }, 0, 10*1000); // 10 seconds
         }
 
         private void volleyRequest() {
