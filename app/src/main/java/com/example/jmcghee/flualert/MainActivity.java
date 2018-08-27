@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -30,13 +31,12 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSIONS_REQUEST_CODE = 100;
-    private static final String URL = "http://api.flutrack.org/?time=7";
     private static final String TV_TEST_TAG = "results"; // Used to save and restore the results of the API call
 
     private TextView tvTest, tvLatitude, tvLongitude;
     private List<FluTweet> fluTweets;
-    private RequestQueue requestQueue;
-    private BroadcastReceiver broadcastReceiver;
+    private BroadcastReceiver broadcastReceiverTweets;
+    private BroadcastReceiver broadcastReceiverLocation;
     private Location location;
 
     @Override
@@ -51,8 +51,6 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState != null) {
             String rawJsonSearchResults = savedInstanceState.getString(TV_TEST_TAG);
             tvTest.setText(rawJsonSearchResults);
-        } else {
-            vollyRequest();
         }
 
         // Make sure location permissions are enabled
@@ -60,43 +58,46 @@ public class MainActivity extends AppCompatActivity {
             runtime_permissions();
         }
 
-        // Start location service
+
         if (location == null) {
             location = new Location("");
         }
 
-        Intent intent = new Intent(getApplicationContext(), UserLocationService.class);
-        startService(intent);
-    }
+        // Start location service
+        Intent locationServiceIntent = new Intent(getApplicationContext(), UserLocationService.class);
+        startService(locationServiceIntent);
 
-    private void vollyRequest() {
-        if (requestQueue == null) {
-            requestQueue = Volley.newRequestQueue(this);
-        }
 
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, URL, null, new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray response) {
-                fluTweets = ApiCallService.buildFluTweetsFromRawJson(response.toString());
-                FluTweet fluTweet = fluTweets.get(0);
-                tvTest.setText(fluTweet.getTweetText());
-            }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                tvTest.setText("Unable to make http request");
-            }
-        });
-
-        requestQueue.add(request);
+        // Start api call service
+        Intent apiCallServiceIntent = new Intent(getApplicationContext(), ApiCallService.class);
+        startService(apiCallServiceIntent);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (broadcastReceiver == null) {
-            broadcastReceiver = new BroadcastReceiver() {
+        initBroadcastReceiverTweets();
+        initBroadcastReceiverLocation();
+    }
+
+    private void initBroadcastReceiverTweets() {
+        if (broadcastReceiverTweets == null) {
+            broadcastReceiverTweets = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+
+                    Bundle bundle = intent.getExtras();
+                    fluTweets = (List<FluTweet>) bundle.getSerializable(ApiCallService.FLU_TWEETS_TAG);
+                    tvTest.setText(fluTweets.get(0).getTweetText());
+                }
+            };
+        }
+        registerReceiver(broadcastReceiverTweets, new IntentFilter(ApiCallService.INTENT_FILTER));
+    }
+
+    private void initBroadcastReceiverLocation() {
+        if (broadcastReceiverLocation == null) {
+            broadcastReceiverLocation = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
 
@@ -123,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
         }
-        registerReceiver(broadcastReceiver, new IntentFilter(UserLocationService.INTENT_FILTER));
+        registerReceiver(broadcastReceiverLocation, new IntentFilter(UserLocationService.INTENT_FILTER));
     }
 
     @Override
@@ -137,8 +138,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (broadcastReceiver != null) {
-            unregisterReceiver(broadcastReceiver);
+        if (broadcastReceiverLocation != null) {
+            unregisterReceiver(broadcastReceiverLocation);
         }
     }
 
@@ -163,7 +164,6 @@ public class MainActivity extends AppCompatActivity {
             return false;
         } else return true;
     }
-
 
 
 

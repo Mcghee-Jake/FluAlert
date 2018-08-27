@@ -43,17 +43,11 @@ public class ApiCallService extends Service {
 
         @Override
         public void onCreate() {
-            Handler handler = new Handler();
-
-            Runnable runnableCode = new Runnable() {
-                @Override
+            new Handler().postDelayed(new Runnable() {
                 public void run() {
                     volleyRequest();
                 }
-            };
-
-            handler.post(runnableCode);
-            handler.postDelayed(runnableCode, 2000);
+            }, 10*000);
         }
 
         private void volleyRequest() {
