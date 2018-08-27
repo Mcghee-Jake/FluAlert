@@ -45,4 +45,9 @@ public class FluTweet implements Serializable {
         }
         return false;
     }
+
+    @Override
+    public int hashCode() {
+        return (this.username.hashCode() + Long.toString(this.tweet_date).hashCode());
+    }
 }

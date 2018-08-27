@@ -22,9 +22,11 @@ import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-    public class ApiCallService extends Service {
+public class ApiCallService extends Service {
 
         public static final String INTENT_FILTER = "api_data_update";
         public static final String FLU_TWEETS_TAG = "flu_tweets";
@@ -78,8 +80,9 @@ import java.util.List;
             requestQueue.add(request);
         }
 
-        private List<FluTweet> buildFluTweetsFromRawJson(String rawJson) {
-            List<FluTweet> fluTweets = new ArrayList<>();
+        public static List<FluTweet> buildFluTweetsFromRawJson(String rawJson) {
+            Set<FluTweet> fluTweetsSet = new HashSet<>();
+            List<FluTweet> fluTweetsList = new ArrayList<>();
 
             try {
                 JSONArray jsonArray = new JSONArray(rawJson);
@@ -94,13 +97,14 @@ import java.util.List;
                     Long tweetDate = jsonObject.getLong("tweet_date");
 
                     FluTweet fluTweet = new FluTweet(username, tweetText, location, tweetDate);
-                    fluTweets.add(fluTweet);
+                    fluTweetsSet.add(fluTweet);
                 }
+                fluTweetsList.addAll(fluTweetsSet);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
 
-            return fluTweets;
+            return fluTweetsList;
         }
 
 }

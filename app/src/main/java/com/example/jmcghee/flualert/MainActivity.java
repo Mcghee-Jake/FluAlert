@@ -21,7 +21,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.jmcghee.flualert.data.FluTweet;
-import com.example.jmcghee.flualert.utils.NetworkUtils;
 
 import org.json.JSONArray;
 
@@ -78,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, URL, null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
-                fluTweets = NetworkUtils.getFluTweetsFromRawJson(response.toString());
+                fluTweets = ApiCallService.buildFluTweetsFromRawJson(response.toString());
                 FluTweet fluTweet = fluTweets.get(0);
                 tvTest.setText(fluTweet.getTweetText());
             }
