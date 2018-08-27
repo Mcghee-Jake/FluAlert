@@ -22,7 +22,8 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".LocationService"/>
+        <service android:name=".UserLocationService"/>
+        <service android:name=".ApiCallService"/>
 
 
     </application>

@@ -2,7 +2,9 @@ package com.example.jmcghee.flualert.data;
 
 import android.location.Location;
 
-public class FluTweet {
+import java.io.Serializable;
+
+public class FluTweet implements Serializable {
     private String username, tweetText;
     private Location location;
     private long tweet_date;
@@ -30,8 +32,17 @@ public class FluTweet {
         return tweet_date;
     }
 
-    public double getDistance(Location location) {
-        return this.location.distanceTo(location);
+    public double getDistanceInMiles(Location location) {
+        return this.location.distanceTo(location) * 0.000621371;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof FluTweet) {
+            FluTweet input = (FluTweet) obj;
+            if (this.username.equals(input.username) && this.tweet_date == input.tweet_date)
+                return true;
+        }
+        return false;
+    }
 }
