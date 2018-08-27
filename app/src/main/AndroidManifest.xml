@@ -24,6 +24,7 @@
 
         <service android:name=".UserLocationService"/>
         <service android:name=".ApiCallService"/>
+        <service android:name=".AlertNotificationService"/>
 
 
     </application>

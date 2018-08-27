@@ -141,6 +141,9 @@ public class MainActivity extends AppCompatActivity {
         if (broadcastReceiverLocation != null) {
             unregisterReceiver(broadcastReceiverLocation);
         }
+        if (broadcastReceiverTweets != null) {
+            unregisterReceiver(broadcastReceiverTweets);
+        }
     }
 
     @Override
