@@ -9,11 +9,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
+import android.opengl.Visibility;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 
 import com.example.jmcghee.flualert.data.FluTweet;
 
@@ -24,7 +26,9 @@ public class AlertNotificationService extends Service {
 
     private static final String CHANNEL_NAME = "FluAlert";
     private static final String CHANNEL_ID = "FluAlertChannel";
+    private static final int NOTIFICATION_ID = 1;
 
+    private NotificationCompat.Builder notificationBuilder;
     private BroadcastReceiver broadcastReceiverTweets;
     private BroadcastReceiver broadcastReceiverLocation;
     private Location location;
@@ -87,11 +91,17 @@ public class AlertNotificationService extends Service {
 
 
                     if (fluTweets != null) {
-
+                        int threatCount = 0;
                         for (FluTweet fluTweet : fluTweets) {
                             if ((int) fluTweet.getDistanceInMiles(location) < 25) {
-                               // TODO do stuff here
+                               threatCount += 1;
                             }
+                        }
+                        if (threatCount > 0 ) {
+                            buildNotification("Flu Warning", threatCount + " nearby threats");
+                            activateNotification();
+                        } else {
+                            deactivateNotification();
                         }
                     }
                 }
@@ -114,17 +124,30 @@ public class AlertNotificationService extends Service {
         }
     }
 
-    private void activateNotification(String title, String content) {
+    private void buildNotification(String title, String content) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+        notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_warning_black_24dp)
                 .setContentTitle(title)
                 .setContentText(content)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setOngoing(true);
+    }
+
+    private void activateNotification() {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+
+       // notificationId is a unique int for each notification that you must define
+        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+    private void deactivateNotification() {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        
+        notificationManager.cancel(NOTIFICATION_ID);
     }
 }
