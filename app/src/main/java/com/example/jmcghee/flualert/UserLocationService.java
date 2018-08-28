@@ -45,7 +45,7 @@ public class UserLocationService extends Service {
         locationRequest = new LocationRequest();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setFastestInterval(1000);
-        locationRequest.setInterval(5*1000);
+        locationRequest.setInterval(5*1000); // 5 seconds
     }
 
 

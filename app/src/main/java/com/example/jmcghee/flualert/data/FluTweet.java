@@ -5,6 +5,8 @@ import android.location.Location;
 import java.io.Serializable;
 
 public class FluTweet implements Serializable {
+
+    private static final long serialVersionUID = 743594308479228156L;
     private String username, tweetText;
     private Location location;
     private long tweet_date;
@@ -40,8 +42,7 @@ public class FluTweet implements Serializable {
     public boolean equals(Object obj) {
         if (obj instanceof FluTweet) {
             FluTweet input = (FluTweet) obj;
-            if (this.username.equals(input.username) && this.tweet_date == input.tweet_date)
-                return true;
+            return this.username.equals(input.username) && this.tweet_date == input.tweet_date;
         }
         return false;
     }
