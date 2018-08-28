@@ -147,7 +147,7 @@ public class AlertNotificationService extends Service {
 
     private void deactivateNotification() {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        
+
         notificationManager.cancel(NOTIFICATION_ID);
     }
 }

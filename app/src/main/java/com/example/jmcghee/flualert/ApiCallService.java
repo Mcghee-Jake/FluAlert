@@ -11,6 +11,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.jmcghee.flualert.data.FluTweet;
@@ -58,10 +59,10 @@ public class ApiCallService extends Service {
                 requestQueue = Volley.newRequestQueue(this);
             }
 
-            StringRequest request = new StringRequest(Request.Method.GET, URL, new Response.Listener<String>() {
+            final JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, URL, null, new Response.Listener<JSONArray>() {
                 @Override
-                public void onResponse(String response) {
-                    List<FluTweet> fluTweets = buildFluTweetsFromRawJson(response);
+                public void onResponse(JSONArray response) {
+                    List<FluTweet> fluTweets = buildFluTweetsFromJsonArray(response);
                     Intent intent = new Intent(INTENT_FILTER);
                     intent.putExtra(FLU_TWEETS_TAG, (Serializable) fluTweets);
                     sendBroadcast(intent);
@@ -77,12 +78,12 @@ public class ApiCallService extends Service {
             requestQueue.add(request);
         }
 
-        public static List<FluTweet> buildFluTweetsFromRawJson(String rawJson) {
+        public static List<FluTweet> buildFluTweetsFromJsonArray(JSONArray jsonArray) {
             Set<FluTweet> fluTweetsSet = new HashSet<>();
             List<FluTweet> fluTweetsList = new ArrayList<>();
 
+
             try {
-                JSONArray jsonArray = new JSONArray(rawJson);
                 for (int i=0; i < jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
 
