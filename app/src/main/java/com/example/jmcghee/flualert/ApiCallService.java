@@ -12,7 +12,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.jmcghee.flualert.data.FluTweet;
 
@@ -20,7 +19,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,7 +62,8 @@ public class ApiCallService extends Service {
                 public void onResponse(JSONArray response) {
                     List<FluTweet> fluTweets = buildFluTweetsFromJsonArray(response);
                     Intent intent = new Intent(INTENT_FILTER);
-                    intent.putExtra(FLU_TWEETS_TAG, (Serializable) fluTweets);
+                    intent.setExtrasClassLoader(FluTweet.class.getClassLoader());
+                    intent.putParcelableArrayListExtra(FLU_TWEETS_TAG, (ArrayList<FluTweet>) fluTweets);
                     sendBroadcast(intent);
                 }
             }, new Response.ErrorListener() {
@@ -101,7 +100,6 @@ public class ApiCallService extends Service {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
             return fluTweetsList;
         }
 

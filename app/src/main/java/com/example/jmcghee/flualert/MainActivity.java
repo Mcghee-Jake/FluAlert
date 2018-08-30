@@ -13,17 +13,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.example.jmcghee.flualert.data.FluTweet;
-
-import org.json.JSONArray;
 
 import java.util.List;
 import java.util.Locale;
@@ -58,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
             runtime_permissions();
         }
 
-
         if (location == null) {
             location = new Location("");
         }
@@ -71,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
         // Start api call service
         Intent apiCallServiceIntent = new Intent(getApplicationContext(), ApiCallService.class);
         startService(apiCallServiceIntent);
+
+        // Start alert notification service
+        // Intent alertNotificationServiceIntent = new Intent(getApplicationContext(), AlertNotificationService.class);
+        // startService(alertNotificationServiceIntent);
     }
 
     @Override
@@ -85,9 +79,7 @@ public class MainActivity extends AppCompatActivity {
             broadcastReceiverTweets = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-
-                    Bundle bundle = intent.getExtras();
-                    fluTweets = (List<FluTweet>) bundle.getSerializable(ApiCallService.FLU_TWEETS_TAG);
+                    fluTweets = intent.getParcelableArrayListExtra(ApiCallService.FLU_TWEETS_TAG);
                     tvTest.setText(fluTweets.get(0).getTweetText());
                 }
             };

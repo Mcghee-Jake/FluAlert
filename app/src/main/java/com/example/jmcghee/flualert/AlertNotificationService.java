@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
-import android.opengl.Visibility;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -69,8 +68,8 @@ public class AlertNotificationService extends Service {
                 @Override
                 public void onReceive(Context context, Intent intent) {
 
-                    Bundle bundle = intent.getExtras();
-                    fluTweets = (List<FluTweet>) bundle.getSerializable(ApiCallService.FLU_TWEETS_TAG);
+                    intent.setExtrasClassLoader(FluTweet.class.getClassLoader());
+                    fluTweets = intent.getParcelableArrayListExtra(ApiCallService.FLU_TWEETS_TAG);
                 }
             };
         }
@@ -114,9 +113,8 @@ public class AlertNotificationService extends Service {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = CHANNEL_NAME;
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance);
             // Register the channel with the system; you can't change the importance
             // or other notification behaviors after this
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
