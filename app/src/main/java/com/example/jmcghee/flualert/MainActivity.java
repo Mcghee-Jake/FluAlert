@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
         }
-        registerReceiver(broadcastReceiverTweets, new IntentFilter(ApiCallService.INTENT_FILTER));
+        LocalBroadcastManager.getInstance(MainActivity.this).registerReceiver(broadcastReceiverTweets, new IntentFilter(ApiCallService.INTENT_FILTER));
     }
 
     private void initBroadcastReceiverLocation() {
@@ -116,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
         }
-        registerReceiver(broadcastReceiverLocation, new IntentFilter(UserLocationService.INTENT_FILTER));
+        LocalBroadcastManager.getInstance(MainActivity.this).registerReceiver(broadcastReceiverLocation, new IntentFilter(UserLocationService.INTENT_FILTER));
     }
 
     @Override

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -59,7 +60,7 @@ public class UserLocationService extends Service {
                     Double longitude = location.getLongitude();
                     intent.putExtra(LATITUDE_TAG, latitude);
                     intent.putExtra(LONGITUDE_TAG, longitude);
-                    sendBroadcast(intent);
+                    LocalBroadcastManager.getInstance(UserLocationService.this).sendBroadcast(intent);
                 }
             }
 

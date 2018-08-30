@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -64,7 +65,7 @@ public class ApiCallService extends Service {
                     Intent intent = new Intent(INTENT_FILTER);
                     intent.setExtrasClassLoader(FluTweet.class.getClassLoader());
                     intent.putParcelableArrayListExtra(FLU_TWEETS_TAG, (ArrayList<FluTweet>) fluTweets);
-                    sendBroadcast(intent);
+                    LocalBroadcastManager.getInstance(ApiCallService.this).sendBroadcast(intent);
                 }
             }, new Response.ErrorListener() {
 
