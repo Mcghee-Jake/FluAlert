@@ -15,23 +15,33 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import com.example.jmcghee.flualert.data.FluTweet;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class AlertNotificationService extends Service {
 
+    private static final String TAG = AlertNotificationService.class.getSimpleName();
+
     private static final String CHANNEL_NAME = "FluAlert";
     private static final String CHANNEL_ID = "FluAlertChannel";
     private static final int NOTIFICATION_ID = 1;
 
+    public static final String INTENT_FILTER = "nearby_flu_tweets";
+    public static final String NEARBY_FLU_TWEETS_TAG = "nearby_flu_tweets";
+
     private NotificationCompat.Builder notificationBuilder;
     private BroadcastReceiver broadcastReceiverTweets;
     private BroadcastReceiver broadcastReceiverLocation;
-    private Location location;
+    private Location location = new Location("");
     private List<FluTweet> fluTweets;
+
+    private boolean notificationActive = false;
 
     @Nullable
     @Override
@@ -43,23 +53,35 @@ public class AlertNotificationService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        location = new Location("");
+        // Start location service
+        Intent locationServiceIntent = new Intent(getApplicationContext(), UserLocationService.class);
+        startService(locationServiceIntent);
 
+
+        // Start api call service
+        Intent apiCallServiceIntent = new Intent(getApplicationContext(), ApiCallService.class);
+        startService(apiCallServiceIntent);
+
+        // Initialize broadcast receivers
         initBroadcastReceiverLocation();
         initBroadcastReceiverTweets();
 
         createNotificationChannel();
+
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+
         if (broadcastReceiverLocation != null) {
-            unregisterReceiver(broadcastReceiverLocation);
+            LocalBroadcastManager.getInstance(AlertNotificationService.this).unregisterReceiver(broadcastReceiverLocation);
         }
         if (broadcastReceiverTweets != null) {
-            unregisterReceiver(broadcastReceiverTweets);
+            LocalBroadcastManager.getInstance(AlertNotificationService.this).unregisterReceiver(broadcastReceiverTweets);
         }
+
+        if (notificationActive) deactivateNotification();
     }
 
     private void initBroadcastReceiverTweets() {
@@ -72,8 +94,9 @@ public class AlertNotificationService extends Service {
                     fluTweets = intent.getParcelableArrayListExtra(ApiCallService.FLU_TWEETS_TAG);
                 }
             };
+
         }
-        registerReceiver(broadcastReceiverTweets, new IntentFilter(ApiCallService.INTENT_FILTER));
+        LocalBroadcastManager.getInstance(AlertNotificationService.this).registerReceiver(broadcastReceiverTweets, new IntentFilter(ApiCallService.INTENT_FILTER));
     }
 
     private void initBroadcastReceiverLocation() {
@@ -90,23 +113,35 @@ public class AlertNotificationService extends Service {
 
 
                     if (fluTweets != null) {
-                        int threatCount = 0;
+                        List<FluTweet> nearbyFluTweets = new ArrayList<>();
+
                         for (FluTweet fluTweet : fluTweets) {
                             if ((int) fluTweet.getDistanceInMiles(location) < 25) {
-                               threatCount += 1;
+                               nearbyFluTweets.add(fluTweet);
                             }
                         }
-                        if (threatCount > 0 ) {
-                            buildNotification("Flu Warning", threatCount + " nearby threats");
-                            activateNotification();
+                        if (nearbyFluTweets.size() > 0 ) {
+                            if (!notificationActive) {
+                                buildNotification("Flu Warning", nearbyFluTweets.size() + " nearby threats");
+                                activateNotification();
+                            }
+                            broadcastToMainActivity(nearbyFluTweets);
                         } else {
-                            deactivateNotification();
+                            if (notificationActive) deactivateNotification();
                         }
                     }
                 }
             };
         }
-        registerReceiver(broadcastReceiverLocation, new IntentFilter(UserLocationService.INTENT_FILTER));
+        LocalBroadcastManager.getInstance(AlertNotificationService.this).registerReceiver(broadcastReceiverLocation, new IntentFilter(UserLocationService.INTENT_FILTER));
+    }
+
+    private void broadcastToMainActivity(List<FluTweet> nearbyFluTweets) {
+        Intent broadcastToMainActivity = new Intent(INTENT_FILTER);
+        broadcastToMainActivity.setExtrasClassLoader(FluTweet.class.getClassLoader());
+        broadcastToMainActivity.putParcelableArrayListExtra(NEARBY_FLU_TWEETS_TAG, (ArrayList<FluTweet>) nearbyFluTweets);
+        LocalBroadcastManager.getInstance(AlertNotificationService.this).sendBroadcast(broadcastToMainActivity);
+        Log.d(TAG, "Broadcast sent");
     }
 
     private void createNotificationChannel() {
@@ -141,11 +176,15 @@ public class AlertNotificationService extends Service {
 
        // notificationId is a unique int for each notification that you must define
         notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+        notificationActive = true;
     }
 
     private void deactivateNotification() {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
 
         notificationManager.cancel(NOTIFICATION_ID);
+        notificationActive = false;
     }
+
+
 }

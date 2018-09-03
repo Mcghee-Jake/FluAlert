@@ -29,10 +29,10 @@ import java.util.TimerTask;
 
 public class ApiCallService extends Service {
 
+        private static final String URL = "http://api.flutrack.org/?time=7";
         public static final String INTENT_FILTER = "api_data_update";
         public static final String FLU_TWEETS_TAG = "flu_tweets";
         private static final String TAG = ApiCallService.class.getSimpleName();
-        private static final String URL = "http://api.flutrack.org/?time=7";
 
         private RequestQueue requestQueue;
 
